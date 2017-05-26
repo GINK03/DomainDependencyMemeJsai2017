@@ -93,21 +93,24 @@ def _step5(arr):
     obj = {"txt": txt, "cluster": cluster.tolist()} 
     #print(obj)
     objs.append(obj)
-  open("tmp/tmp.{key}.json", "w").write(json.dumps(objs))
+  open("tmp/tmp.{key}.json".format(key=key), "w").write(json.dumps(objs))
   
 def step5():
   key_lines = {}
   with open("dataset/yahoo.news.txt", "r") as f:
     for el, line in enumerate(f):
       line = line.strip()
-      key  = el//1000
+      key  = el//250
       if key_lines.get(key) is None:
         key_lines[key] = []
       key_lines[key].append(line)
-  #with concurrent.futures.ProcessPoolExecutor() as executor:
+      #if el > 10000:
+      #  break
   key_lines = [(k,l) for k,l in key_lines.items()]
-  for k_l in key_lines:
-    _step5(k_l)
+  with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
+  #for k_l in key_lines:
+  #  _step5(k_l)
+    executor.map(_step5, key_lines)
       
 
 if __name__ == '__main__':
