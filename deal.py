@@ -20,6 +20,10 @@ def step1():
           w.write( wakati + "\n" )
           #print(wakati + "\n")
 
+def step2():
+  """ まずベクトルを作る、この時に特に問題のデータを取り出す """
+  os.system("./fasttext skipgram -input yahoo.news.txt -output model  -thread 16 -maxn 0")
+
 if __name__ == '__main__':
   if '--step1' in sys.argv:
     step1()
