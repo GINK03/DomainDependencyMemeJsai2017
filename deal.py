@@ -122,39 +122,54 @@ def step5():
 """ Windowsはば3で文脈skipを行う"""
 def _step6(arr):
   name = arr
-  oss = []
-  term_clus = {}
-  print(name)
-  with open(name) as f:
-    for line in f:
-      line = line.strip()
-      oss.append(json.loads(line))
-
-  for i in range(3, len(oss) - 3):
-    terms = set( oss[i]["txt"] )
-    for term in terms:
-      if term_clus.get(term) is None:
-         term_clus[term] = [0.0]*128
-      cd = [oss[d]["cluster"][0] for d in [-3, -2, -1, 1, 2, 3]]
-      for c in cd: 
-        term_clus[term][c] += 1.0
-  print("finished")
   return term_clus
 
 def step6():
 
   for tipe in ["news", "nocturne"]:
     names = [name for name in reversed(sorted(glob.glob("./tmp/tmp.{tipe}.*.json".format(tipe=tipe))))]
-    term_clus = {}
-    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
-      for _term_clus in executor.map(_step6, names):
-        for term, clus in _term_clus.items():
+    size  = len(names)
+    for en, name in enumerate(names):
+      term_clus = {}
+      oss = []
+      with open(name) as f:
+        for line in f:
+          line = line.strip()
+          oss.append(json.loads(line))
+      for i in range(3, len(oss) - 3):
+        terms = set( oss[i]["txt"] )
+        for term in terms:
           if term_clus.get(term) is None:
-            term_clus[term] = [0.0]*128
-          for i, c in enumerate(clus):
-            term_clus[term][i] += c
+             term_clus[term] = [0.0]*128
+          cd = [oss[i+d]["cluster"][0] for d in [-3, -2, -1, 1, 2, 3]]
+          for c in cd: 
+            term_clus[term][c] += 1.0
+      print("{}/{} finished {}".format(en, size, name))
     open("{tipe}.term_clus.pkl".format(tipe=tipe), "wb").write( pickle.dumps(term_clus) )
 
+def step7():
+  term_clus = pickle.loads(open("./news.term_clus.pkl", "rb").read())
+  term_clus = {term:clus for term, clus in filter(lambda x: sum(x[1]) > 30, term_clus.items()) }
+  for term in term_clus.keys():
+    vec = term_clus[term] 
+    acc = sum(vec)
+    term_clus[term] = list(map(lambda x:x/acc, vec))
+  open("news.term_dist.pkl", "wb").write(pickle.dumps(term_clus))
+
+  term_clus = pickle.loads(open("./nocturne.term_clus.pkl", "rb").read())
+  term_clus = {term:clus for term, clus in filter(lambda x: sum(x[1]) > 30, term_clus.items()) }
+  for term in term_clus.keys():
+    vec = term_clus[term] 
+    acc = sum(vec)
+    term_clus[term] = list(map(lambda x:x/acc, vec))
+  open("nocturne.term_dist.pkl", "wb").write(pickle.dumps(term_clus))
+
+def step8():
+  term_dist = pickle.loads( open("nocturne.term_clus.pkl", "rb").read() )
+  for term, dist in term_dist.items():
+    print(term, dist)
+
+  ...
 if __name__ == '__main__':
 
   if '--step1' in sys.argv:
@@ -174,3 +189,9 @@ if __name__ == '__main__':
 
   if '--step6' in sys.argv:
     step6()
+
+  if '--step7' in sys.argv:
+    step7()
+
+  if '--step8' in sys.argv:
+    step8()
