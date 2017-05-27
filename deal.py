@@ -75,44 +75,60 @@ def _step5(arr):
   print(key)
   open("./tmp/tmp.{key}.txt".format(key=key), "w").write("\n".join(lines))
   res  = os.popen("./fasttext print-sentence-vectors ./models/model.bin < tmp/tmp.{key}.txt".format(key=key)).read()
-  objs = []
+  w    = open("tmp/tmp.{key}.json".format(key=key), "w")
   for line in res.split("\n"):
-    #print(line)
     try:
-      vec = list(map(float, res.split()[-100:]))
+      vec = list(map(float, line.split()[-100:]))
     except:
       print(line)
       print(res)
-      #sys.exit()
       continue
     x = np.array(vec)
     if np.isnan(x).any():
       continue
     cluster = kmeans.predict([vec])
-    txt = res.split()[:-100]
+    txt = line.split()[:-100]
     obj = {"txt": txt, "cluster": cluster.tolist()} 
-    #print(obj)
-    objs.append(obj)
-  open("tmp/tmp.{key}.json".format(key=key), "w").write(json.dumps(objs))
+    data = json.dumps(obj, ensure_ascii=False)
+    w.write( data + "\n" )
   
 def step5():
   key_lines = {}
   with open("dataset/yahoo.news.txt", "r") as f:
     for el, line in enumerate(f):
       line = line.strip()
-      key  = el//250
+      key  = el//10000
       if key_lines.get(key) is None:
         key_lines[key] = []
       key_lines[key].append(line)
-      #if el > 10000:
-      #  break
   key_lines = [(k,l) for k,l in key_lines.items()]
-  with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
-  #for k_l in key_lines:
-  #  _step5(k_l)
+  with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
     executor.map(_step5, key_lines)
-      
 
+""" Windowsはば3で文脈skipを行う"""
+def step6():
+  term_clus_freq = {}
+  for name in glob.glob("./tmp/*.json"):
+    print(name)
+    oss = []
+    with open(name) as f:
+      for line in f:
+        line = line.strip()
+        oss.append(json.loads(line))
+
+    for i in range(3, len(oss) - 3):
+      terms = set( oss[i]["txt"] )
+      for term in terms:
+        if term_clus_freq.get(term) is None:
+           term_clus_freq[term] = {}
+        cd = [oss[d]["cluster"][0] for d in [-3, -2, -1, 1, 2, 3]]
+        for c in cd: 
+          if term_clus_freq[term].get(c) is None:
+            term_clus_freq[term][c] = 0
+          term_clus_freq[term][c] += 1
+  open("term_clus_freq.pkl", "wb").write( pickle.dumps(term_clus_freq) )
+  for term, clus_freq in term_clus_freq.items():
+    print(term, clus_freq)
 if __name__ == '__main__':
 
   if '--step1' in sys.argv:
@@ -129,3 +145,6 @@ if __name__ == '__main__':
   
   if '--step5' in sys.argv:
     step5()
+
+  if '--step6' in sys.argv:
+    step6()
