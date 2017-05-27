@@ -27,15 +27,16 @@ def step1():
 
 def step2():
   """ まずベクトルを作る、この時に特に問題のデータを取り出す """
-  os.system("./fasttext skipgram -input yahoo.news.txt -output model  -thread 16 -maxn 0")
+  os.system("./fasttext skipgram -input dataset/bind.txt -output models/model  -thread 16 -maxn 0")
 
 """ ここで文章のベクトル化を行って、出力する"""
 def step3():
   key_vec = {}
-  maxx    = 11080000
-  for i in range(0, maxx, 10000):
+  maxx    = 12505807
+  size    = 10000
+  for i in range(size, maxx, size):
     print(i, maxx)
-    res = os.popen("head -n {i} ./dataset/yahoo.news.txt | tail -n 10000 | ./fasttext print-sentence-vectors ./models/model.bin".format(i=i)).read()
+    res = os.popen("head -n {i} ./dataset/bind.txt | tail -n {size} | ./fasttext print-sentence-vectors ./models/model.bin".format(i=i, size=size)).read()
     for line in res.split("\n"):
       if line == "":
         continue
@@ -57,9 +58,10 @@ def step4():
       continue
     vecs.append(x)
   vecs   = np.array(vecs)
-  kmeans = KMeans(n_clusters=128, init='k-means++', n_init=10, max_iter=500,
+  kmeans = KMeans(n_clusters=128, init='k-means++', n_init=10, max_iter=300,
                        tol=0.0001,precompute_distances='auto', verbose=0,
                        random_state=None, copy_x=True, n_jobs=1)
+  print("now fitting...")
   kmeans.fit(vecs)
   
   open("kmeans.model", "wb").write( pickle.dumps(kmeans) )
@@ -71,11 +73,11 @@ import concurrent.futures
 import json
 def _step5(arr):
   kmeans = pickle.loads(open("kmeans.model", "rb").read())
-  key, lines = arr
+  key, lines, tipe = arr
   print(key)
-  open("./tmp/tmp.{key}.txt".format(key=key), "w").write("\n".join(lines))
-  res  = os.popen("./fasttext print-sentence-vectors ./models/model.bin < tmp/tmp.{key}.txt".format(key=key)).read()
-  w    = open("tmp/tmp.{key}.json".format(key=key), "w")
+  open("./tmp/tmp.{tipe}.{key}.txt".format(tipe=tipe,key=key), "w").write("\n".join(lines))
+  res  = os.popen("./fasttext print-sentence-vectors ./models/model.bin < tmp/tmp.{tipe}.{key}.txt".format(tipe=tipe, key=key)).read()
+  w    = open("tmp/tmp.{tipe}.{key}.json".format(tipe=tipe,key=key), "w")
   for line in res.split("\n"):
     try:
       vec = list(map(float, line.split()[-100:]))
@@ -101,34 +103,58 @@ def step5():
       if key_lines.get(key) is None:
         key_lines[key] = []
       key_lines[key].append(line)
-  key_lines = [(k,l) for k,l in key_lines.items()]
+  key_lines = [(k,l,"news") for k,l in key_lines.items()]
+  with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+    executor.map(_step5, key_lines)
+  
+  key_lines = {}
+  with open("dataset/nocturne.txt", "r") as f:
+    for el, line in enumerate(f):
+      line = line.strip()
+      key  = el//10000
+      if key_lines.get(key) is None:
+        key_lines[key] = []
+      key_lines[key].append(line)
+  key_lines = [(k,l,"nocturne") for k,l in key_lines.items()]
   with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
     executor.map(_step5, key_lines)
 
 """ Windowsはば3で文脈skipを行う"""
-def step6():
-  term_clus_freq = {}
-  for name in glob.glob("./tmp/*.json"):
-    print(name)
-    oss = []
-    with open(name) as f:
-      for line in f:
-        line = line.strip()
-        oss.append(json.loads(line))
+def _step6(arr):
+  name = arr
+  oss = []
+  term_clus = {}
+  print(name)
+  with open(name) as f:
+    for line in f:
+      line = line.strip()
+      oss.append(json.loads(line))
 
-    for i in range(3, len(oss) - 3):
-      terms = set( oss[i]["txt"] )
-      for term in terms:
-        if term_clus_freq.get(term) is None:
-           term_clus_freq[term] = {}
-        cd = [oss[d]["cluster"][0] for d in [-3, -2, -1, 1, 2, 3]]
-        for c in cd: 
-          if term_clus_freq[term].get(c) is None:
-            term_clus_freq[term][c] = 0
-          term_clus_freq[term][c] += 1
-  open("term_clus_freq.pkl", "wb").write( pickle.dumps(term_clus_freq) )
-  for term, clus_freq in term_clus_freq.items():
-    print(term, clus_freq)
+  for i in range(3, len(oss) - 3):
+    terms = set( oss[i]["txt"] )
+    for term in terms:
+      if term_clus.get(term) is None:
+         term_clus[term] = [0.0]*128
+      cd = [oss[d]["cluster"][0] for d in [-3, -2, -1, 1, 2, 3]]
+      for c in cd: 
+        term_clus[term][c] += 1.0
+  print("finished")
+  return term_clus
+
+def step6():
+
+  for tipe in ["news", "nocturne"]:
+    names = [name for name in reversed(sorted(glob.glob("./tmp/tmp.{tipe}.*.json".format(tipe=tipe))))]
+    term_clus = {}
+    with concurrent.futures.ProcessPoolExecutor(max_workers=3) as executor:
+      for _term_clus in executor.map(_step6, names):
+        for term, clus in _term_clus.items():
+          if term_clus.get(term) is None:
+            term_clus[term] = [0.0]*128
+          for i, c in enumerate(clus):
+            term_clus[term][i] += c
+    open("{tipe}.term_clus.pkl".format(tipe=tipe), "wb").write( pickle.dumps(term_clus) )
+
 if __name__ == '__main__':
 
   if '--step1' in sys.argv:
