@@ -55,7 +55,7 @@ Word2Vecではエンピリカルな視点から、意味がベクトル化され
 文脈の粒度を、文としました。文をベクトル化するにに、skip thought vector[1]や、doc2vec[2], fastText[3]などが利用できます  
 このベクトルに意味らしきものが含まれるかという議論ですが、ICML2016のtext2imageによると、文章ベクトルから画像の生成に成功していることから鑑みて、なんらかの特徴が内包されているかとわかります[4]
 <p align="center">
-  <img width="400px" src="https://cloud.githubusercontent.com/assets/4949982/26527081/39127af0-43c7-11e7-879f-11ceb472dbfb.png">
+  <img width="500px" src="https://cloud.githubusercontent.com/assets/4949982/26527081/39127af0-43c7-11e7-879f-11ceb472dbfb.png">
 </p>
 <div align="center">図3. Sentence Vectorizer</div>
 
