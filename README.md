@@ -51,6 +51,7 @@ Word2Vecではエンピリカルな視点から、意味がベクトル化され
 今回の提案では、これをより拡張して、**単語の意味が周辺の文脈から何らかの影響を受けている**と仮定して、モデルを作ります。  
 
 <p align="center">
-  <img width="400px" src="">
+  <img width="400px" src="https://cloud.githubusercontent.com/assets/4949982/26526969/ce9e4502-43c4-11e7-860d-19fbcdec0fd2.png">
 </p>
+<div align="center">図X. 文脈により相対位置を決定</div>
 
