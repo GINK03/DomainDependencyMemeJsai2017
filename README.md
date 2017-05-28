@@ -42,3 +42,7 @@ PixivのBLのコンテンツを参照し、論文にハンドル名を含めて�
 ドメインという粒度だと、多分ニュースサイトと、小説サイトでは、同じ単語を持っていても微妙に意味が異なるかと思います。  
 skip gram的な考え方だと、周辺にある単語の分布を見ることで意味が決定すると言う仮説があります。その応用例がword2vecで馴染みぶかい物かもしれません。  
 
+<p align="center">
+  <img width="400px" src="https://cloud.githubusercontent.com/assets/4949982/26526886/265f0210-43c3-11e7-972b-8fe7d30fea3f.png">
+</p>
+<div align="center">図X. skip gram </div>
