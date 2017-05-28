@@ -143,6 +143,7 @@ Memoery: 48GByte
 ```console
 https://github.com/GINK03/DomainDependencyMemeJsai2017
 ```
+[https://github.com/GINK03/DomainDependencyMemeJsai2017:embed:cite]
 
 ## 参考文献
 [1] [Sent2Vec](https://github.com/ryankiros/skip-thoughts)  
