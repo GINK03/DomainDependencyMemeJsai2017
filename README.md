@@ -46,3 +46,11 @@ skip gram的な考え方だと、周辺にある単語の分布を見ること�
   <img width="400px" src="https://cloud.githubusercontent.com/assets/4949982/26526886/265f0210-43c3-11e7-972b-8fe7d30fea3f.png">
 </p>
 <div align="center">図X. skip gram </div>
+
+Word2Vecではエンピリカルな視点から、意味がベクトル化されているということがわかっています。  
+今回の提案では、これをより拡張して、**単語の意味が周辺の文脈から何らかの影響を受けている**と仮定して、モデルを作ります。  
+
+<p align="center">
+  <img width="400px" src="">
+</p>
+
