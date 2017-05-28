@@ -61,7 +61,7 @@ Word2Vecではエンピリカルな視点から、意味がベクトル化され
 このベクトルに意味らしきものが含まれるかという議論ですが、ICML2016のtext2imageによると、文章ベクトルから画像の生成に成功していることから鑑みて、なんらかの特徴が内包されているかとわかります[4]
 
 ## 参考文献
-[1]
+[1] [Sent2Vec](https://github.com/ryankiros/skip-thoughts)
 [2]
 [3]
 [4] [ICML2016, text2image](https://github.com/reedscot/icml2016)
