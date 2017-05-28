@@ -144,6 +144,8 @@ Memoery: 48GByte
 https://github.com/GINK03/DomainDependencyMemeJsai2017
 ```
 [https://github.com/GINK03/DomainDependencyMemeJsai2017:embed:cite]
+  
+deal.pyに一連の処理が記してありますが、コメントを要所にいれましたが、とにかく工程が多いので、どうしても解説が必要な方はツイッター等で聞いていただければ幸いです(アカデミアの方に限ります)  
 
 ## 参考文献
 [1] [Sent2Vec](https://github.com/ryankiros/skip-thoughts)  
